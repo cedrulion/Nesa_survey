@@ -25,7 +25,7 @@ const AdminLogin = () => {
   const handleAdminSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/login', loginData);
+      await axios.post('http://localhost:5000/api/login', loginData);
       toast.success('Login Successful! Redirecting to dashboard...', {
         position: 'top-right',
         autoClose: 3000,

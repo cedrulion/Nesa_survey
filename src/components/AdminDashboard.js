@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FaEdit, FaTrash, FaEye, FaCaretDown, FaFilePdf, FaFileExcel, FaImage } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaEye, FaCaretDown, FaFilePdf, FaFileExcel } from 'react-icons/fa';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import logo from '../Assets/nesalogo.png';

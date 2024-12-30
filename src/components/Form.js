@@ -8,7 +8,6 @@ import {
   FaEnvelope,
   FaBirthdayCake,
   FaMale,
-  FaFemale,
   FaFlag,
   FaBriefcase,
   FaHashtag,
