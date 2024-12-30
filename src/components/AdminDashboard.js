@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FaEdit, FaTrash, FaEye, FaCaretDown } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaEye, FaCaretDown, FaFilePdf, FaFileExcel, FaImage } from 'react-icons/fa';
+import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
 import logo from '../Assets/nesalogo.png';
 import SurveyDetails from './SurveyDetails';  
 import { useNavigate } from 'react-router-dom'; 
@@ -77,6 +79,26 @@ const AdminDashboard = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text('Survey Data', 10, 10);
+    filteredSurveys.forEach((survey, index) => {
+      doc.text(
+        `${index + 1}. Name: ${survey.fullName}, Email: ${survey.email}, Phone: ${survey.phoneNumber}`,
+        10,
+        20 + index * 10
+      );
+    });
+    doc.save('surveys.pdf');
+  };
+
+  const handleExportExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredSurveys);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Surveys');
+    XLSX.writeFile(workbook, 'surveys.xlsx');
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -87,7 +109,21 @@ const AdminDashboard = () => {
           <h1 className="text-xl font-bold text-gray-700 ml-2">Admin Dashboard</h1>
         </div>
         <div>
-          <h1 className="text-xl font-bold text-sky-500 ml-2">Survey</h1>
+          <h1 className="text-xl font-bold text-sky-500 ml-2">  Survey   </h1>
+        </div>
+        <div className="flex items-center">
+          <button
+            className="border px-4 py-2 rounded-md bg-green-500 text-white hover:bg-green-600"
+            onClick={handleExportPDF}
+          >
+            <FaFilePdf className="inline mr-2" /> Export PDF
+          </button>
+          <button
+            className="border px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 mx-2"
+            onClick={handleExportExcel}
+          >
+            <FaFileExcel className="inline mr-2" /> Export Excel
+          </button>
         </div>
 
         <div className="flex items-center">

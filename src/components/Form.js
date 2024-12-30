@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   FaUser,
   FaPhoneAlt,
@@ -29,14 +31,120 @@ const Form = () => {
     city: "",
   });
 
+  const [errors, setErrors] = useState({});
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case "fullName":
+        return value.length >= 3
+          ? ""
+          : "Full Name must be at least 3 characters long.";
+      case "email":
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+          ? ""
+          : "Invalid email format.";
+      case "phoneNumber":
+        return /^(072|073|078|079)\d{7}$/.test(value)
+          ? ""
+          : "Phone number must be 10 digits starting with 072, 073, 078, or 079.";
+      case "zipCode":
+        return /^\d{5}$/.test(value)
+          ? ""
+          : "ZIP Code must be exactly 5 digits.";
+      case "dateOfBirth":
+        return value ? "" : "Date of Birth is required.";
+      case "gender":
+        return value ? "" : "Please select a gender.";
+      case "country":
+        return value.length >= 2
+          ? ""
+          : "Country must be at least 2 characters.";
+      case "occupation":
+        return value.length >= 2
+          ? ""
+          : "Occupation must be at least 2 characters.";
+      case "education":
+        return value.length >= 2
+          ? ""
+          : "Education must be at least 2 characters.";
+      case "city":
+        return value.length >= 2 ? "" : "City must be at least 2 characters.";
+      default:
+        return "";
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+
+    const error = validateField(name, value);
+    setErrors({ ...errors, [name]: error });
+  };
+
+  const isFormValid = () =>
+    Object.values(errors).every((error) => !error) &&
+    Object.values(formData).every((field) => field);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!isFormValid()) {
+      toast.error("Please fix the validation errors before submitting.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    try {
+      const location = await new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              resolve({ latitude, longitude });
+            },
+            (error) => reject(error)
+          );
+        } else {
+          reject(new Error("Geolocation is not supported by this browser."));
+        }
+      });
+
+      const address = await fetchAddress(
+        location.latitude,
+        location.longitude
+      );
+
+      const dataToSubmit = { ...formData, address };
+
+      const response = await axios.post(
+        "http://localhost:5000/api/surveys",
+        dataToSubmit
+      );
+
+      toast.success("Submitted Successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      console.log("Survey Submitted", response.data);
+    } catch (error) {
+      toast.error("Error submitting the survey.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      console.error(
+        "Error submitting survey:",
+        error.response ? error.response.data : error.message
+      );
+    }
   };
 
   const fetchAddress = async (latitude, longitude) => {
     try {
-      // Replace with your geocoding API
       const response = await axios.get(
         `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=8e18b06fd85c4293b42c735d8b55328c`
       );
@@ -47,48 +155,9 @@ const Form = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      // Get geolocation
-      const fetchLocation = () =>
-        new Promise((resolve, reject) => {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                const { latitude, longitude } = position.coords;
-                resolve({ latitude, longitude });
-              },
-              (error) => reject(error)
-            );
-          } else {
-            reject(new Error("Geolocation is not supported by this browser."));
-          }
-        });
-
-      const location = await fetchLocation();
-      const address = await fetchAddress(location.latitude, location.longitude);
-
-      // Include address in formData
-      const dataToSubmit = { ...formData, address };
-
-      // Send data to the server
-      const response = await axios.post(
-        "http://localhost:5000/api/surveys",
-        dataToSubmit
-      );
-      console.log("Survey Submitted", response.data);
-    } catch (error) {
-      console.error(
-        "Error submitting survey:",
-        error.response ? error.response.data : error.message
-      );
-    }
-  };
-
   return (
     <div className="bg-gradient-to-b from-blue-100 to-blue-300 min-h-screen flex items-center justify-center py-10">
+      <ToastContainer />
       <div className="bg-white max-w-4xl w-full rounded-xl shadow-lg p-8">
         <img
           src={logo}
@@ -97,136 +166,65 @@ const Form = () => {
         />
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-lg shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-xl border"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-lg shadow-md"
         >
-          {/** Form Fields */}
           {[
-            {
-              id: "fullName",
-              label: "Full Name",
-              icon: <FaUser className="text-blue-500" />,
-              type: "text",
-              placeholder: "John Doe",
-              value: formData.fullName,
-            },
-            {
-              id: "email",
-              label: "Email",
-              icon: <FaEnvelope className="text-blue-500" />,
-              type: "email",
-              placeholder: "john.doe@example.com",
-              value: formData.email,
-            },
-            {
-              id: "phoneNumber",
-              label: "Phone Number",
-              icon: <FaPhoneAlt className="text-blue-500" />,
-              type: "tel",
-              placeholder: "123-456-7890",
-              value: formData.phoneNumber,
-            },
-            {
-              id: "dateOfBirth",
-              label: "Date of Birth",
-              icon: <FaBirthdayCake className="text-blue-500" />,
-              type: "date",
-              value: formData.dateOfBirth,
-            },
-            {
-              id: "country",
-              label: "Country",
-              icon: <FaFlag className="text-blue-500" />,
-              type: "text",
-              placeholder: "Country",
-              value: formData.country,
-            },
-            {
-              id: "occupation",
-              label: "Occupation",
-              icon: <FaBriefcase className="text-blue-500" />,
-              type: "text",
-              placeholder: "Occupation",
-              value: formData.occupation,
-            },
-            {
-              id: "zipCode",
-              label: "ZIP Code",
-              icon: <FaHashtag className="text-blue-500" />,
-              type: "text",
-              placeholder: "12345",
-              value: formData.zipCode,
-            },
-            {
-              id: "education",
-              label: "Education",
-              icon: <FaUniversity className="text-blue-500" />,
-              type: "text",
-              placeholder: "Highest Degree",
-              value: formData.education,
-            },
-            {
-              id: "city",
-              label: "City",
-              icon: <FaCity className="text-blue-500" />,
-              type: "text",
-              placeholder: "City",
-              value: formData.city,
-            },
-          ].map(({ id, label, icon, type, placeholder, value }) => (
+            { id: "fullName", label: "Full Name", icon: <FaUser /> },
+            { id: "email", label: "Email", icon: <FaEnvelope /> },
+            { id: "phoneNumber", label: "Phone", icon: <FaPhoneAlt /> },
+            { id: "dateOfBirth", label: "Date of Birth", icon: <FaBirthdayCake /> },
+            { id: "country", label: "Country", icon: <FaFlag /> },
+            { id: "occupation", label: "Occupation", icon: <FaBriefcase /> },
+            { id: "zipCode", label: "ZIP Code", icon: <FaHashtag /> },
+            { id: "education", label: "Education", icon: <FaUniversity /> },
+            { id: "city", label: "City", icon: <FaCity /> },
+          ].map(({ id, label, icon }) => (
             <div key={id}>
-              <label
-                htmlFor={id}
-                className="block font-medium text-gray-600 mb-1"
-              >
+              <label htmlFor={id} className="block font-medium mb-1">
                 {icon} {label}
               </label>
               <input
-                type={type}
                 id={id}
                 name={id}
-                value={value}
+                value={formData[id]}
                 onChange={handleChange}
-                placeholder={placeholder}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-400 transition-all hover:shadow-lg hover:border-blue-500"
-                required
+                className={`w-full px-4 py-2 border ${
+                  errors[id] ? "border-red-500" : "border-gray-300"
+                } rounded-lg`}
               />
+              {errors[id] && <p className="text-red-500 text-sm">{errors[id]}</p>}
             </div>
           ))}
-
-          {/** Gender */}
           <div>
-            <label
-              htmlFor="gender"
-              className="block font-medium text-gray-600 mb-1"
-            >
-              <FaMale className="text-blue-500 inline-block mr-1" />
+          <FaMale className=" inline-block mr-1" />
+            <label htmlFor="gender" className="block font-medium mb-1">
               Gender
             </label>
+            
             <select
               id="gender"
               name="gender"
               value={formData.gender}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-400 transition-all hover:shadow-lg hover:border-blue-500"
-              required
+              className={`w-full px-4 py-2 border ${
+                errors.gender ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
             >
               <option value="">Select Gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
+            {errors.gender && (
+              <p className="text-red-500 text-sm">{errors.gender}</p>
+            )}
           </div>
-
-          {/** Submit Button */}
-          <div className="flex justify-center">
           <button
-             type="submit"
-              className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg transition-all hover:bg-blue-600 hover:shadow-lg focus:ring focus:ring-blue-400"
-            >
+            type="submit"
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg"
+          >
             Submit
-           </button>
-           </div>
-
+          </button>
         </form>
       </div>
     </div>
