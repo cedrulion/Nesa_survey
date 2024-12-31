@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -30,7 +30,22 @@ const Form = () => {
     city: "",
   });
 
+  const [countries, setCountries] = useState([]);
   const [errors, setErrors] = useState({});
+
+  // Fetch countries from API
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await axios.get("https://restcountries.com/v3.1/all");
+        const countryNames = response.data.map((country) => country.name.common);
+        setCountries(countryNames.sort());
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    };
+    fetchCountries();
+  }, []);
 
   const validateField = (name, value) => {
     switch (name) {
@@ -55,17 +70,13 @@ const Form = () => {
       case "gender":
         return value ? "" : "Please select a gender.";
       case "country":
-        return value.length >= 2
-          ? ""
-          : "Country must be at least 2 characters.";
+        return value ? "" : "Please select a country.";
       case "occupation":
         return value.length >= 2
           ? ""
           : "Occupation must be at least 2 characters.";
       case "education":
-        return value.length >= 2
-          ? ""
-          : "Education must be at least 2 characters.";
+        return value ? "" : "Please select your education level.";
       case "city":
         return value.length >= 2 ? "" : "City must be at least 2 characters.";
       default:
@@ -97,32 +108,7 @@ const Form = () => {
     }
 
     try {
-      const location = await new Promise((resolve, reject) => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const { latitude, longitude } = position.coords;
-              resolve({ latitude, longitude });
-            },
-            (error) => reject(error)
-          );
-        } else {
-          reject(new Error("Geolocation is not supported by this browser."));
-        }
-      });
-
-      const address = await fetchAddress(
-        location.latitude,
-        location.longitude
-      );
-
-      const dataToSubmit = { ...formData, address };
-
-      const response = await axios.post(
-        "http://localhost:5000/api/surveys",
-        dataToSubmit
-      );
-
+      const response = await axios.post("http://localhost:5000/api/surveys", formData);
       toast.success("Submitted Successfully!", {
         position: "top-right",
         autoClose: 3000,
@@ -142,18 +128,6 @@ const Form = () => {
     }
   };
 
-  const fetchAddress = async (latitude, longitude) => {
-    try {
-      const response = await axios.get(
-        `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=8e18b06fd85c4293b42c735d8b55328c`
-      );
-      return response.data.results[0]?.formatted || "Unknown Address";
-    } catch (error) {
-      console.error("Error fetching address:", error);
-      return "Unknown Address";
-    }
-  };
-
   return (
     <div className="bg-gradient-to-b from-blue-100 to-blue-300 min-h-screen flex items-center justify-center py-10">
       <ToastContainer />
@@ -167,33 +141,213 @@ const Form = () => {
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-lg shadow-md"
         >
-          {[
-            { id: "fullName", label: "Full Name", icon: <FaUser /> },
-            { id: "email", label: "Email", icon: <FaEnvelope /> },
-            { id: "phoneNumber", label: "Phone", icon: <FaPhoneAlt /> },
-            { id: "dateOfBirth", label: "Date of Birth", icon: <FaBirthdayCake /> },
-            { id: "country", label: "Country", icon: <FaFlag /> },
-            { id: "occupation", label: "Occupation", icon: <FaBriefcase /> },
-            { id: "zipCode", label: "ZIP Code", icon: <FaHashtag /> },
-            { id: "education", label: "Education", icon: <FaUniversity /> },
-            { id: "city", label: "City", icon: <FaCity /> },
-          ].map(({ id, label, icon }) => (
-            <div key={id}>
-              <label htmlFor={id} className="block font-medium mb-1">
-                {icon} {label}
+          {/* Full Name */}
+          <div>
+            <label className="block font-medium mb-1">
+              <FaUser className="inline-block mr-1" /> Full Name
+            </label>
+            <input
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              placeholder="Enter your full name"
+              className={`w-full px-4 py-2 border ${
+                errors.fullName ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
+            />
+            {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block font-medium mb-1">
+              <FaEnvelope className="inline-block mr-1" /> Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              className={`w-full px-4 py-2 border ${
+                errors.email ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
+            />
+            {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label className="block font-medium mb-1">
+              <FaPhoneAlt className="inline-block mr-1" /> Phone Number
+            </label>
+            <input
+              type="text"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              placeholder="Enter your phone number"
+              className={`w-full px-4 py-2 border ${
+                errors.phoneNumber ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
+            />
+            {errors.phoneNumber && (
+              <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
+            )}
+          </div>
+
+          {/* Date of Birth */}
+          <div>
+            <label className="block font-medium mb-1">
+              <FaBirthdayCake className="inline-block mr-1" /> Date of Birth
+            </label>
+            <input
+              type="date"
+              name="dateOfBirth"
+              value={formData.dateOfBirth}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 border ${
+                errors.dateOfBirth ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
+            />
+            {errors.dateOfBirth && (
+              <p className="text-red-500 text-sm">{errors.dateOfBirth}</p>
+            )}
+          </div>
+
+          {/* Gender */}
+          <div>
+            <label className="block font-medium mb-1">
+              <FaMale className="inline-block mr-1" /> Gender
+            </label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 border ${
+                errors.gender ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            {errors.gender && <p className="text-red-500 text-sm">{errors.gender}</p>}
+          </div>
+
+          {/* Country */}
+          <div>
+            <label className="block font-medium mb-1">
+              <FaFlag className="inline-block mr-1" /> Country
+            </label>
+            <select
+              name="country"
+              value={formData.country}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 border ${
+                errors.country ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
+            >
+              <option value="">Select a Country</option>
+              {countries.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+            {errors.country && <p className="text-red-500 text-sm">{errors.country}</p>}
+          </div>
+
+          {/* Occupation */}
+          <div>
+            <label className="block font-medium mb-1">
+              <FaBriefcase className="inline-block mr-1" /> Occupation
+            </label>
+            <input
+              type="text"
+              name="occupation"
+              value={formData.occupation}
+              onChange={handleChange}
+              placeholder="Enter your occupation"
+              className={`w-full px-4 py-2 border ${
+                errors.occupation ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
+            />
+            {errors.occupation && (
+              <p className="text-red-500 text-sm">{errors.occupation}</p>
+            )}
+          </div>
+
+          {/* ZIP Code */}
+          <div>
+            <label className="block font-medium mb-1">
+              <FaHashtag className="inline-block mr-1" /> ZIP Code
+            </label>
+            <input
+              type="text"
+              name="zipCode"
+              value={formData.zipCode}
+              onChange={handleChange}
+              placeholder="Enter your ZIP Code"
+              className={`w-full px-4 py-2 border ${
+                errors.zipCode ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
+            />
+            {errors.zipCode && <p className="text-red-500 text-sm">{errors.zipCode}</p>}
+          </div>
+
+          {/* Education Level */}
+          <div>
+            <label className="block font-medium mb-1">
+              <FaUniversity className="inline-block mr-1" /> Education Level
+            </label>
+            <select
+              name="education"
+              value={formData.education}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 border ${
+                errors.education ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
+            >
+              <option value="">Select Education Level</option>
+              <option value="Bachelors">Bachelors</option>
+              <option value="Masters">Masters</option>
+              <option value="PhD">PhD</option>
+            </select>
+            {errors.education && (
+              <p className="text-red-500 text-sm">{errors.education}</p>
+            )}
+          </div>
+
+          {/* City */}
+          <div>
+            <label className="block font-medium mb-1">
+              <FaCity className="inline-block mr-1" /> City
               </label>
-              <input
-                id={id}
-                name={id}
-                value={formData[id]}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 border ${
-                  errors[id] ? "border-red-500" : "border-gray-300"
-                } rounded-lg`}
-              />
-              {errors[id] && <p className="text-red-500 text-sm">{errors[id]}</p>}
-            </div>
-          ))}
+            <input
+              type="text"
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              placeholder="Enter your City"
+              className={`w-full px-4 py-2 border ${
+                errors.zipCode ? "border-red-500" : "border-gray-300"
+              } rounded-lg`}
+            />
+            {errors.city && (<p className="text-red-500 text-sm">{errors.city}</p>
+            )}
+          </div>
+
+          <div>
+          <button
+            type="submit"
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg"
+          >
+            Submit
+          </button>
+          </div>
           <div>
           <FaMale className=" inline-block mr-1" />
             <label htmlFor="gender" className="block font-medium mb-1">
@@ -218,12 +372,6 @@ const Form = () => {
               <p className="text-red-500 text-sm">{errors.gender}</p>
             )}
           </div>
-          <button
-            type="submit"
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg"
-          >
-            Submit
-          </button>
         </form>
       </div>
     </div>
