@@ -341,12 +341,6 @@ const Form = () => {
           </div>
 
           <div>
-          <button
-            type="submit"
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg"
-          >
-            Submit
-          </button>
           </div>
           <div>
           <FaMale className=" inline-block mr-1" />
@@ -371,6 +365,14 @@ const Form = () => {
             {errors.gender && (
               <p className="text-red-500 text-sm">{errors.gender}</p>
             )}
+          </div>
+          <div className="col-span-1 md:col-span-2 flex justify-center">
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-600 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all"
+            >
+              Submit
+            </button>
           </div>
         </form>
       </div>
