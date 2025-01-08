@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useHistory } from "react-router-dom"; // For navigation
+import { useNavigate } from 'react-router-dom';
+
 import {
   FaUser,
   FaPhoneAlt,
@@ -35,7 +36,7 @@ const Form = () => {
   const [errors, setErrors] = useState({});
   const [isAdminPromptVisible, setIsAdminPromptVisible] = useState(false); // Track visibility of admin prompt
 
-  const history = useHistory(); // For navigation to /login
+  const navigate = useNavigate();
 
   // Fetch countries from API
   useEffect(() => {
@@ -59,7 +60,7 @@ const Form = () => {
     setIsAdminPromptVisible(false); // Hide the prompt
 
     if (isAdmin) {
-      history.push("/login"); // Redirect to /login if user confirms they are admin
+      navigate("/login"); // Redirect to /login if user confirms they are admin
     }
     // If not admin, do nothing (stay on the current page)
   };
