@@ -25,7 +25,7 @@ const AdminDashboard = () => {
 
   const fetchSurveys = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/surveys');
+      const response = await axios.get('https://surveybackend.netlify.app/api/surveys');
       setSurveys(response.data);
     } catch (error) {
       console.error('Error fetching surveys:', error);
@@ -34,7 +34,7 @@ const AdminDashboard = () => {
 
   const fetchSurveyById = async (id) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/surveys/${id}`);
+      const response = await axios.get(`https://surveybackend.netlify.app/api/surveys/${id}`);
       setSelectedSurvey(response.data);
       setShowDetails(true);
     } catch (error) {
@@ -45,7 +45,7 @@ const AdminDashboard = () => {
   const deleteSurvey = async (id) => {
     if (window.confirm('Are you sure you want to delete this survey?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/surveys/${id}`);
+        await axios.delete(`https://surveybackend.netlify.app/api/surveys/${id}`);
         fetchSurveys();
       } catch (error) {
         console.error('Error deleting survey:', error);

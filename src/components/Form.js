@@ -108,7 +108,7 @@ const Form = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/api/surveys", formData);
+      const response = await axios.post("https://surveybackend.netlify.app/api/surveys", formData);
       toast.success("Submitted Successfully!", {
         position: "top-right",
         autoClose: 3000,
@@ -339,7 +339,6 @@ const Form = () => {
             {errors.city && (<p className="text-red-500 text-sm">{errors.city}</p>
             )}
           </div>
-
           <div>
           </div>
           <div>
