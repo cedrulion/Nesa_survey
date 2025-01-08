@@ -341,30 +341,6 @@ const Form = () => {
           </div>
           <div>
           </div>
-          <div>
-          <FaMale className=" inline-block mr-1" />
-            <label htmlFor="gender" className="block font-medium mb-1">
-              Gender
-            </label>
-            
-            <select
-              id="gender"
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className={`w-full px-4 py-2 border ${
-                errors.gender ? "border-red-500" : "border-gray-300"
-              } rounded-lg`}
-            >
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-            {errors.gender && (
-              <p className="text-red-500 text-sm">{errors.gender}</p>
-            )}
-          </div>
           <div className="col-span-1 md:col-span-2 flex justify-center">
             <button
               type="submit"
