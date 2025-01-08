@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useHistory } from "react-router-dom"; // For navigation
 import {
   FaUser,
   FaPhoneAlt,
@@ -32,6 +33,9 @@ const Form = () => {
 
   const [countries, setCountries] = useState([]);
   const [errors, setErrors] = useState({});
+  const [isAdminPromptVisible, setIsAdminPromptVisible] = useState(false); // Track visibility of admin prompt
+
+  const history = useHistory(); // For navigation to /login
 
   // Fetch countries from API
   useEffect(() => {
@@ -46,6 +50,19 @@ const Form = () => {
     };
     fetchCountries();
   }, []);
+
+  const handleLogoClick = () => {
+    setIsAdminPromptVisible(true); // Show the prompt when logo is clicked
+  };
+
+  const handleAdminPromptResponse = (isAdmin) => {
+    setIsAdminPromptVisible(false); // Hide the prompt
+
+    if (isAdmin) {
+      history.push("/login"); // Redirect to /login if user confirms they are admin
+    }
+    // If not admin, do nothing (stay on the current page)
+  };
 
   const validateField = (name, value) => {
     switch (name) {
@@ -132,11 +149,36 @@ const Form = () => {
     <div className="bg-gradient-to-b from-blue-100 to-blue-300 min-h-screen flex items-center justify-center py-10">
       <ToastContainer />
       <div className="bg-white max-w-4xl w-full rounded-xl shadow-lg p-8">
+        {/* Logo with click handler */}
         <img
           src={logo}
           alt="Logo"
-          className="w-32 mx-auto mb-6 rounded-full shadow-md"
+          className="w-32 mx-auto mb-6 rounded-full shadow-md cursor-pointer"
+          onClick={handleLogoClick}
         />
+
+        {/* Admin Prompt */}
+        {isAdminPromptVisible && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+              <p>Are you an admin?</p>
+              <div className="mt-4">
+                <button
+                  onClick={() => handleAdminPromptResponse(true)}
+                  className="bg-green-500 text-white px-4 py-2 rounded mr-4"
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => handleAdminPromptResponse(false)}
+                  className="bg-red-500 text-white px-4 py-2 rounded"
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-lg shadow-md"
